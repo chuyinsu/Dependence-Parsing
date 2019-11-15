@@ -7,6 +7,7 @@ Sahil Chopra <schopra8@stanford.edu>
 """
 
 import sys
+import copy
 
 class PartialParse(object):
     def __init__(self, sentence):
@@ -16,7 +17,7 @@ class PartialParse(object):
                                         Your code should not modify the sentence.
         """
         # The sentence being parsed is kept for bookkeeping purposes. Do not alter it in your code.
-        self.sentence = sentence
+        self.sentence = sentence # for its methods to use it!
 
         ### YOUR CODE HERE (3 Lines)
         ### Your code should initialize the following fields:
@@ -30,6 +31,9 @@ class PartialParse(object):
         ###
         ### Note: The root token should be represented with the string "ROOT"
         ###
+        self.stack = ["ROOT"]
+        self.buffer = copy.copy(self.sentence) # shallow copy should be enough, as there is no nested structure
+        self.dependencies = [] # ? or set as order not matters
 
 
         ### END YOUR CODE
@@ -50,7 +54,21 @@ class PartialParse(object):
         ###         2. Left Arc
         ###         3. Right Arc
 
-
+        if transition == "S":
+            self.stack.append(self.buffer[0])
+            del self.buffer[0]
+        else:
+            if len(self.stack) < 2:
+                raise Exception("The length of self.stack does not support for LA or RA operator.")
+            if transition == "LA":
+                head = self.stack[-1]
+                dependent = self.stack[-2]
+                del self.stack[-2]
+            else:
+                head = self.stack[-2]
+                dependent = self.stack[-1]
+                del self.stack[-1]
+            self.dependencies.append((head, dependent))
         ### END YOUR CODE
 
     def parse(self, transitions):
@@ -111,9 +129,9 @@ def test_step(name, transition, stack, buf, deps,
               ex_stack, ex_buf, ex_deps):
     """Tests that a single parse step returns the expected output"""
     pp = PartialParse([])
-    pp.stack, pp.buffer, pp.dependencies = stack, buf, deps
+    pp.stack, pp.buffer, pp.dependencies = stack, buf, deps # initialization
 
-    pp.parse_step(transition)
+    pp.parse_step(transition) # train
     stack, buf, deps = (tuple(pp.stack), tuple(pp.buffer), tuple(sorted(pp.dependencies)))
     assert stack == ex_stack, \
         "{:} test resulted in stack {:}, expected {:}".format(name, stack, ex_stack)

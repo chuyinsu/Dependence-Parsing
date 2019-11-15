@@ -1,0 +1,5 @@
+1. Adam Optimization:(converges much faster than sgd)
+* sgd with momentum (i.e. exponential smoothing on gradient, giving lower variance, making it more closer to optimal direction with using the entire data set versus minibatch used in sgd).
+* sgd with momentum and also scaled by its more smoothed graident magnitude, making the coordinate with smaller variance to get faster update while suppressing the coordinate with larger variance.
+
+2. Dependency parser -- performance metric: Unlabeled Attachment Score (UAS)
