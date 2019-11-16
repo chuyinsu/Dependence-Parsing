@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+     #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 CS224N 2018-19: Homework 3
@@ -7,7 +7,7 @@ Sahil Chopra <schopra8@stanford.edu>
 """
 
 import sys
-import copy
+import numpy as np
 
 class PartialParse(object):
     def __init__(self, sentence):
@@ -32,7 +32,7 @@ class PartialParse(object):
         ### Note: The root token should be represented with the string "ROOT"
         ###
         self.stack = ["ROOT"]
-        self.buffer = copy.copy(self.sentence) # shallow copy should be enough, as there is no nested structure
+        self.buffer = self.sentence[:] # shallow copy should be enough, as there is no nested structure
         self.dependencies = [] # ? or set as order not matters
 
 
@@ -80,6 +80,9 @@ class PartialParse(object):
                                                         parsing the sentence. Represented as a list of
                                                         tuples where each tuple is of the form (head, dependent).
         """
+        if isinstance(transitions, str): # sanity check
+            transitions = [transitions]
+            
         for transition in transitions:
             self.parse_step(transition)
         return self.dependencies
@@ -103,7 +106,8 @@ def minibatch_parse(sentences, model, batch_size):
                                                     same as in sentences (i.e., dependencies[i] should
                                                     contain the parse for sentences[i]).
     """
-    dependencies = []
+    n_s = len(sentences)
+    dependencies = [[]]*n_s
 
     ### YOUR CODE HERE (~8-10 Lines)
     ### TODO:
@@ -118,8 +122,25 @@ def minibatch_parse(sentences, model, batch_size):
     ###             contains references to the same objects. Thus, you should NOT use the `del` operator
     ###             to remove objects from the `unfinished_parses` list. This will free the underlying memory that
     ###             is being accessed by `partial_parses` and may cause your code to crash.
+   
+    partial_parses = [PartialParse(sentence) for sentence in sentences]
+    unfinished_parses = partial_parses[:]
+    unfinished_indices = list(np.arange(n_s))
 
-
+    while unfinished_indices:
+        batch_len = min(len(unfinished_indices), batch_size)
+        batch_indices = unfinished_indices[:batch_len]
+        batch_pps = [unfinished_parses[i] for i in batch_indices]   
+        batch_transitions = model.predict(batch_pps) # how minibatch used
+        #print(type(batch_transitions[0]))
+        for i in range(batch_len):
+            pp = batch_pps[i]
+            #print("before: {} {}".format(pp.dependencies, pp.stack))
+            pp.parse([batch_transitions[i]]) # bug: a list of strs while model.predict returns a list of strs.
+            #print("after: {} {}".format(pp.dependencies, pp.stack))
+            if len(pp.stack) == 1 and not len(pp.buffer):
+                dependencies[batch_indices[i]] = pp.dependencies
+                unfinished_indices.remove(batch_indices[i])
     ### END YOUR CODE
 
     return dependencies
