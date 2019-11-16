@@ -48,7 +48,7 @@ class ParserModel(nn.Module):
         self.hidden_size = hidden_size
         self.pretrained_embeddings = nn.Embedding(embeddings.shape[0], self.embed_size)
         self.pretrained_embeddings.weight = nn.Parameter(torch.tensor(embeddings)) # embeddings are pretrained matrix
-
+        #self.pretrained_embeddings.weight = nn.Parameter(embeddings.clone().detach())
         ### YOUR CODE HERE (~5 Lines)
         ### TODO:
         ###     1) Construct `self.embed_to_hidden` linear layer, initializing the weight matrix
@@ -58,7 +58,7 @@ class ParserModel(nn.Module):
         ###         with the `nn.init.xavier_uniform_` function with `gain = 1` (default)
         ###
         self.embed_to_hidden = nn.Linear(self.embed_size * self.n_features, self.hidden_size) # Bias = True(default), self.embed_size for a single word
-        nn.init.xavier_uniform_(self.emed_to_hidden.weight)
+        nn.init.xavier_uniform_(self.embed_to_hidden.weight)
         self.dropout = nn.Dropout(p = self.dropout_prob)
         # might be used as `self.dropout(self.emed_to_hidden.weight)` randomly zero some elements
         self.hidden_to_logits = nn.Linear(self.hidden_size, self.n_classes)
@@ -102,6 +102,7 @@ class ParserModel(nn.Module):
         ###     2) After you apply the embedding lookup, you will have a tensor shape (batch_size, n_features, embedding_size).
         ###         Use the tensor `view` method to reshape the embeddings tensor to (batch_size, n_features * embedding_size)
         ###
+        batch_size = t.size()[0]
         x = self.pretrained_embeddings(t).view(batch_size, -1) # `-1` means the dimension depends on the other dimension
 
         ### Note: In order to get batch_size, you may need use the tensor.size() function:
@@ -158,3 +159,9 @@ class ParserModel(nn.Module):
 
         ### END YOUR CODE
         return logits
+
+if __name__ == "__main__":
+    embeddings = torch.randn(2,3)
+    t_c = ParserModel(embeddings)
+    for p in t_c.parameters():
+        print(p.data.size())

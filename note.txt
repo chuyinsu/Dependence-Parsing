@@ -3,5 +3,3 @@
 * sgd with momentum and also scaled by its more smoothed graident magnitude, making the coordinate with smaller variance to get faster update while suppressing the coordinate with larger variance.
 
 2. Dependency parser -- performance metric: Unlabeled Attachment Score (UAS)
-
-*. Dropout: need one more line about droppingout the weight?
