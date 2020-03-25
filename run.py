@@ -116,6 +116,8 @@ def train_for_epoch(parser, train_data, dev_data, optimizer, loss_func, batch_si
 
 
 if __name__ == "__main__":
+    # pull-test
+    print("Hello world")
     # Note: Set debug to False, when training on entire corpus
     #debug = True
     debug = False
